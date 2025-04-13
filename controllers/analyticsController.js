@@ -7,11 +7,11 @@ exports.getAnalytics = async (req, res) => {
       SELECT 
         s.id, 
         s.title, 
-        s.artist, 
+        s.publisherName, 
         COUNT(st.song_id) as play_count
       FROM songs s
       LEFT JOIN streaming_stats st ON s.id = st.song_id
-      GROUP BY s.id, s.title, s.artist
+      GROUP BY s.id, s.title, s.publisherName
       ORDER BY play_count DESC
       LIMIT 10
     `);

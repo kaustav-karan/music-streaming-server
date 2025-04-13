@@ -8,6 +8,10 @@ const storage = multer.diskStorage({
   destination: fileService.getUploadsDir(),
   filename: (req, file, cb) => {
     const uniqueName = fileService.generateUniqueFileName(file.originalname);
+    req.body = {
+      ...req.body,
+      fileName: uniqueName,
+    };
     cb(null, uniqueName);
   },
 });

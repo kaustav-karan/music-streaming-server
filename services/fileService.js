@@ -1,28 +1,40 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const UPLOADS_DIR = path.join(__dirname, "../uploads");
-const OPUS_DIR = path.join(__dirname, "../opus");
+const OPUS_DIR128 = path.join(__dirname, "../opus128");
+const OPUS_DIR192 = path.join(__dirname, "../opus192");
 
 // Ensure directories exist
-[UPLOADS_DIR, OPUS_DIR].forEach((dir) => {
+[UPLOADS_DIR, OPUS_DIR128, OPUS_DIR192].forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
 module.exports = {
   getUploadsDir: () => UPLOADS_DIR,
-  getOpusDir: () => OPUS_DIR,
+  getOpusDir128: () => OPUS_DIR128,
+  getOpusDir192: () => OPUS_DIR192,
 
   generateUniqueFileName: (originalName) => {
-    return `${Date.now()}-${originalName}`;
+    return crypto.createHash('sha256').update(originalName).digest('hex').slice(0, 8);
   },
 
-  generateFileId: (fileName) => {
-    return path.parse(fileName).name;
-  },
+  generateRandomId: (length = 3) => {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  },  
 
   getOpusFilePath: (fileId, quality) => {
-    return path.join(OPUS_DIR, `${fileId}-${quality}.opus`);
+    if (quality === 128) {
+      return path.join(OPUS_DIR128, `${fileId}-${quality}.opus`);
+    }else{
+      return path.join(OPUS_DIR192, `${fileId}-${quality}.opus`);
+    }
   },
 
   fileExists: (filePath) => {

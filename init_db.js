@@ -2,10 +2,10 @@ const { Pool } = require("pg");
 const logger = require("./utils/logger");
 
 const adminPool = new Pool({
-  user: "postgres",
+  user: "cebasture",
   host: "localhost",
-  database: "postgres",
-  password: "postgres",
+  database: "music_streaming",
+  password: "psql#1120",
   port: 5432,
 });
 
@@ -13,8 +13,8 @@ const adminPool = new Pool({
   let client;
   try {
     // Create database
-    await adminPool.query("CREATE DATABASE music_stream");
-    logger.info("Database created");
+    // await adminPool.query("CREATE DATABASE music_stream");
+    // logger.info("Database created");
 
     // Connect to new database
     client = await adminPool.connect();
@@ -22,19 +22,20 @@ const adminPool = new Pool({
     // Create tables
     await client.query(`
       CREATE TABLE songs (
-        id SERIAL PRIMARY KEY,
+        id CHAR(7) PRIMARY KEY,
         original_name VARCHAR(255) NOT NULL,
         storage_name VARCHAR(255) NOT NULL,
         title VARCHAR(255) NOT NULL,
-        artist VARCHAR(255) NOT NULL,
+        publisherName VARCHAR(255) NOT NULL,
+        size BIGINT[] NOT NULL,
         upload_time TIMESTAMP DEFAULT NOW()
       )
     `);
 
     await client.query(`
       CREATE TABLE streaming_stats (
-        id SERIAL PRIMARY KEY,
-        song_id INTEGER REFERENCES songs(id) NOT NULL,
+        id CHAR(7) PRIMARY KEY,
+        song_id CHAR(7) REFERENCES songs(id),
         quality VARCHAR(10) NOT NULL,
         stream_time TIMESTAMP DEFAULT NOW()
       )
@@ -43,6 +44,7 @@ const adminPool = new Pool({
     logger.info("Tables created successfully");
   } catch (err) {
     logger.error("Database initialization failed:", err);
+    console.log(err);
   } finally {
     if (client) client.release();
     adminPool.end();

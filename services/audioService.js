@@ -5,6 +5,7 @@ const fileService = require("./fileService");
 const logger = require("../utils/logger");
 const constants = require("../utils/constants");
 const ffmpeg = require("ffmpeg-static"); // Ensure ffmpeg-static is installed
+const fs = require("fs/promises");
 
 // Helper function for conversion
 async function convertToOpus(inputPath, outputPath, bitrate) {
@@ -23,13 +24,22 @@ async function convertToOpus(inputPath, outputPath, bitrate) {
 module.exports = {
   convertToOpusFormats: async (inputPath, fileId) => {
     try {
-      const conversions = constants.ALLOWED_QUALITIES.map((quality) => {
+      const conversions = constants.ALLOWED_QUALITIES.map(async (quality) => {
         const outputPath = fileService.getOpusFilePath(fileId, quality);
-        return convertToOpus(inputPath, outputPath, quality);
+        await convertToOpus(inputPath, outputPath, quality);
+
+        // Get file size in bytes after conversion
+        const stats = await fs.stat(outputPath);
+
+        return {
+          quality,
+          path: outputPath,
+          size: stats.size, // in bytes
+        };
       });
 
-      await Promise.all(conversions);
-      return true;
+      const results = await Promise.all(conversions);
+      return results;
     } catch (err) {
       logger.error("Audio conversion failed:", err);
       throw err;
